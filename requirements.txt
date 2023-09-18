@@ -1,0 +1,6 @@
+pymongo
+cloudinary
+uvicorn
+fastapi
+apscheduler
+python-multipart
