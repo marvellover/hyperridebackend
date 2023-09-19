@@ -75,6 +75,19 @@ def get_the_avaiable_bike_data(pickuptime:str,plan:str):
                 print('The bike is not in the upcoming list')
                 avaliblebikeId.append(bike_id)
             else:
-               print('Bike is currently booked')
+               print('Bike is currently booked',bike_record['_id'])
+               currnetbookingendtime = bike_record['currentexpirytime']
+               if currnetbookingendtime < pickupdataandtime:
+                  avaliblebikeId.append(str(bike_record['_id']))
+               else:
+                  print('the bike not avaiable for any booking')
 
-    return avaliblebikeId
+
+            #getting the avalibel bike data and sending response
+            bike_data =[]
+            for id in avaliblebikeId:
+               bike=collection.find_one({'_id':ObjectId(id)})
+               bike['_id'] = str(bike['_id'])
+               bike_data.append(bike)
+
+    return bike_data

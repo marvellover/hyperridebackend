@@ -1,14 +1,17 @@
 from fastapi import FastAPI
 from Booking.BikeDetails import BikeDetailsRouter
-from Booking.DisplayBike import booking_router
 from Booking.BookingDetails import Bookbike_router
 from Booking.AdminBikeControl import Admin_router
 from fastapi.middleware.cors import CORSMiddleware
 from Booking.BookingbikeDisplay import BikeBooking_router
 from Booking.ShowAvaiable import ShowAvaiable_router
+from Booking.SingleBikeOperation import singleBike_router
+from Booking.BookingBike import Bookingbike_router
 app = FastAPI()
+app.include_router(Bookingbike_router)
+app.include_router(singleBike_router)
 app.include_router(BikeDetailsRouter)
-app.include_router(booking_router)
+
 app.include_router(Admin_router)
 app.include_router(Bookbike_router)
 app.include_router(BikeBooking_router)

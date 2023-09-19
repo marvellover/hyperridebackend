@@ -18,6 +18,44 @@ upcomingcollection = db['AlreadyBooking']
 
 
 
+
+
+# def relese_bike_background(bike_id):
+#    id = ObjectId(bike_id)
+#    try:
+#         print('Updating booking details for bike ID:', bike_id)
+    
+#         updated_bike_details = {
+#             "bikebookingstatus": False,
+#             "currentpickuptime": '0000-00-00 00:00:00',
+#             "currentexpirytime": '0000-00-00 00:00:00',
+#         }
+
+#         # Update the bike details in MongoDB
+#         result = collection.update_one({"_id": id}, {"$set": updated_bike_details})
+
+#         if result.modified_count == 1:
+#             print(f'Successfully updated  times for bike ID {id}')
+#         else:
+#             print(f'Failed to update bike details for bike ID {id}')
+#    except Exception as e:
+#         print('Error:', str(e))
+  
+# def del_the_upcoming_booking(id: str):
+#     print('The bike_id', str(id), 'is trigerred to deleted from upcoming booking')
+#     try:
+#         res = upcomingcollection.delete_one({'_id': ObjectId(id)})
+#         if res.deleted_count > 0:
+#             print('Successfully deleted from upcoming booking')
+#             return {'message': "Successfully deleted the record with id " + str(id)}
+#         else:
+#             print('No data found with id ', str(id))
+#             return {'message': 'No data found with this id ' + str(id)}
+#     except Exception as e:
+#         print(e)
+#         return {'message': 'An error occurred while deleting the record'}
+
+
 def book_bike_background(bike_id,endtime,pickuptime):
    id = ObjectId(bike_id)
    try:
@@ -42,42 +80,6 @@ def book_bike_background(bike_id,endtime,pickuptime):
             print(f'Failed to update bike details for bike ID {id}')
    except Exception as e:
         print('Error:', str(e))
-
-def relese_bike_background(bike_id):
-   id = ObjectId(bike_id)
-   try:
-        print('Updating booking details for bike ID:', bike_id)
-    
-        updated_bike_details = {
-            "bikebookingstatus": False,
-            "currentpickuptime": '0000-00-00 00:00:00',
-            "currentexpirytime": '0000-00-00 00:00:00',
-        }
-
-        # Update the bike details in MongoDB
-        result = collection.update_one({"_id": id}, {"$set": updated_bike_details})
-
-        if result.modified_count == 1:
-            print(f'Successfully updated  times for bike ID {id}')
-        else:
-            print(f'Failed to update bike details for bike ID {id}')
-   except Exception as e:
-        print('Error:', str(e))
-  
-def del_the_upcoming_booking(id: str):
-    print('The bike_id', str(id), 'is trigerred to deleted from upcoming booking')
-    try:
-        res = upcomingcollection.delete_one({'_id': ObjectId(id)})
-        if res.deleted_count > 0:
-            print('Successfully deleted from upcoming booking')
-            return {'message': "Successfully deleted the record with id " + str(id)}
-        else:
-            print('No data found with id ', str(id))
-            return {'message': 'No data found with this id ' + str(id)}
-    except Exception as e:
-        print(e)
-        return {'message': 'An error occurred while deleting the record'}
-
 
 
 @Bookbike_router.get('/BookBike')
@@ -104,8 +106,13 @@ async def Book_bike(pickuptime: str, plan: str,bike_id :str):
 
     endtime = pickuptime_datetime + plan_duration
     ExpireData_time = endtime.strftime('%Y-%m-%d %H:%M:%S')
-    
-
+    scheduler.add_job(
+        book_bike_background,
+        trigger=DateTrigger(run_date=pickuptime_datetime),  
+        args=[bike_id, endtime, pickuptime],
+        id="book_bike_job",
+        replace_existing=True,
+    )
     BookedRecord = {
         'bike_id':bike_id,
         'pickuptime':pickuptime,
@@ -118,33 +125,8 @@ async def Book_bike(pickuptime: str, plan: str,bike_id :str):
     except Exception as e:
         print('An error occurred during insertion:', e)
 
-    scheduler.add_job(
-        del_the_upcoming_booking,
-        trigger=DateTrigger(run_date=pickuptime_datetime),
-        args=[doucment_id],
-        id='remove upcoming_job',
-        replace_existing=True
-    )
-    scheduler.add_job(
-        book_bike_background,
-        trigger=DateTrigger(run_date=pickuptime_datetime),  
-        args=[bike_id, endtime, pickuptime],
-        id="book_bike_job",
-        replace_existing=True,
-    )
-
-
-    scheduler.add_job(
-        relese_bike_background,
-        trigger=DateTrigger(run_date=ExpireData_time),
-        args=[bike_id],
-        id='Bike_relese',
-        replace_existing=True
-
-    )
-    print('trigger is generated')
-
-
+   
+    print('Bike booked will book,trigger is generated')
     # You can return the booking details here
     return {
         "message": "Successfully booked bike",
@@ -153,7 +135,21 @@ async def Book_bike(pickuptime: str, plan: str,bike_id :str):
         "duration_hours": plannumber,
     }
 
+ # scheduler.add_job(
+    #     relese_bike_background,
+    #     trigger=DateTrigger(run_date=ExpireData_time),
+    #     args=[bike_id],
+    #     id='Bike_relese',
+    #     replace_existing=True
 
+    # )
+# scheduler.add_job(
+    #     del_the_upcoming_booking,
+    #     trigger=DateTrigger(run_date=pickuptime_datetime),
+    #     args=[doucment_id],
+    #     id='remove upcoming_job',
+    #     replace_existing=True
+    # )   
 
 @Bookbike_router.get('/get_booking_data')
 def get_booking_data(pickuptime:str,plan:str):

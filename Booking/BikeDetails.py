@@ -18,17 +18,6 @@ db = client['Bike_details_database']
 collection = db['Bike_details']
 
 BikeDetailsRouter = APIRouter()
-
-# class BikeDetailsModel(BaseModel):
-#     bikename: str
-#     bikebookingstatus: bool
-#     currentpickuptime: str
-#     currentexpirytime: str
-#     bikeFeatures1: str
-#     bikeFeatures2: str
-#     bikeFeatures3: str
-#     bikeImage: UploadFile = File(...)
-
 # Create your FastAPI endpoint
 @BikeDetailsRouter.post('/Upload_bike_details')
 async def upload_bike_details(
